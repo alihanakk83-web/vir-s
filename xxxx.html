@@ -1,0 +1,435 @@
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows Defender - Tam Sistem Taraması</title>
+    <link rel="icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .window {
+            background: white;
+            border: 2px solid #0078d4;
+            border-radius: 8px;
+            margin: 50px auto;
+            width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .title-bar {
+            background: linear-gradient(to bottom, #0078d4, #005a9e);
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .title-text {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .shield-icon {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        
+        .window-controls {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .control-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+        
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #28ca42; }
+        .close { background: #ff5f56; }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .scan-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .scan-status {
+            font-size: 24px;
+            color: #d83b01;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .progress-container {
+            background: #e1e1e1;
+            border-radius: 10px;
+            height: 25px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .current-file {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            height: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-box {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #d83b01;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #d83b01;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .threat-list {
+            background: #fff5f5;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .threat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ffcdd2;
+        }
+        
+        .threat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .threat-name {
+            font-weight: bold;
+            color: #d83b01;
+        }
+        
+        .threat-path {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .threat-severity {
+            background: #d83b01;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            background: #0078d4;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #005a9e;
+        }
+        
+        .btn-danger {
+            background: #d83b01;
+        }
+        
+        .btn-danger:hover {
+            background: #b32d00;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .blinking {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="title-bar">
+            <div class="title-text">
+                <span class="shield-icon">🛡️</span>
+                Windows Defender - Antivirus Taraması
+            </div>
+            <div class="window-controls">
+                <button class="control-btn minimize">−</button>
+                <button class="control-btn maximize">□</button>
+                <button class="control-btn close" onclick="closeWindow()">×</button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div id="scanning-phase">
+                <div class="scan-header">
+                    <div class="scan-status">Sistem Taranıyor...</div>
+                    <div>Lütfen bekleyin, bilgisayarınız kontrol ediliyor</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                
+                <div class="current-file" id="current-file">Taranıyor: C:\Windows\System32\...</div>
+            </div>
+            
+            <div id="results-phase" class="hidden">
+                <div class="warning blinking">
+                    ⚠️ UYARI: Ciddi güvenlik tehditleri tespit edildi!
+                </div>
+                
+                <div class="scan-header">
+                    <div class="scan-status">Tarama Tamamlandı</div>
+                    <div>Bilgisayarınızda çoklu tehdit tespit edildi</div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="virus-count">0</div>
+                        <div class="stat-label">Virüs Tespit Edildi</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="file-count">0</div>
+                        <div class="stat-label">Dosya Tarandı</div>
+                    </div>
+                </div>
+                
+                <div class="threat-list" id="threat-list">
+                    <!-- Dinamik olarak doldurulacak -->
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-danger" onclick="startCleaning()">Hemen Temizle</button>
+                    <button class="btn" onclick="showDetails()">Detayları Göster</button>
+                    <button class="btn" onclick="restartScan()">Yeniden Tara</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let progress = 0;
+        let virusCount = 0;
+        let fileCount = 0;
+        
+        const files = [
+            'C:\\Windows\\System32\\kernel32.dll',
+            'C:\\Users\\Desktop\\important_document.exe',
+            'C:\\Program Files\\Google\\Chrome\\chrome.exe',
+            'C:\\Windows\\explorer.exe',
+            'C:\\Users\\Downloads\\setup.exe',
+            'C:\\Windows\\System32\\ntoskrnl.exe',
+            'C:\\Program Files\\Microsoft Office\\WINWORD.EXE',
+            'C:\\Users\\Documents\\graduation_photos.zip.exe',
+            'C:\\Windows\\System32\\svchost.exe',
+            'C:\\Users\\AppData\\Local\\Temp\\tmp394.exe'
+        ];
+        
+        const viruses = [
+            { name: 'Trojan.Win32.Agent', path: 'C:\\Users\\Downloads\\setup.exe', severity: 'YÜKSEK' },
+            { name: 'Worm.VBS.LoveLetter', path: 'C:\\Users\\Desktop\\important_document.exe', severity: 'KRİTİK' },
+            { name: 'Backdoor.Win32.DarkComet', path: 'C:\\Windows\\System32\\fake_system.dll', severity: 'YÜKSEK' },
+            { name: 'Ransomware.WannaCry', path: 'C:\\Users\\Documents\\graduation_photos.zip.exe', severity: 'KRİTİK' },
+            { name: 'Adware.Generic.Malware', path: 'C:\\Program Files\\Suspicious\\adware.exe', severity: 'ORTA' },
+            { name: 'Spyware.Keylogger.Supreme', path: 'C:\\Users\\AppData\\Local\\Temp\\tmp394.exe', severity: 'YÜKSEK' },
+            { name: 'Rootkit.Win32.TDSS', path: 'C:\\Windows\\System32\\drivers\\malicious.sys', severity: 'KRİTİK' }
+        ];
+        
+        function startScan() {
+            const progressBar = document.getElementById('progress-bar');
+            const currentFile = document.getElementById('current-file');
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                fileCount += Math.floor(Math.random() * 50) + 10;
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(showResults, 1000);
+                }
+                
+                progressBar.style.width = progress + '%';
+                currentFile.textContent = 'Taranıyor: ' + files[Math.floor(Math.random() * files.length)];
+                
+                // Rastgele virüs bulma
+                if (Math.random() < 0.3 && virusCount < 7) {
+                    virusCount++;
+                }
+            }, 800);
+        }
+        
+        function showResults() {
+            document.getElementById('scanning-phase').classList.add('hidden');
+            document.getElementById('results-phase').classList.remove('hidden');
+            
+            // Sayıları animate et
+            animateNumber('virus-count', virusCount);
+            animateNumber('file-count', fileCount + 15000);
+            
+            // Virüs listesini doldur
+            setTimeout(populateThreatList, 1000);
+        }
+        
+        function animateNumber(elementId, targetNumber) {
+            const element = document.getElementById(elementId);
+            let current = 0;
+            const increment = targetNumber / 30;
+            
+            const interval = setInterval(() => {
+                current += increment;
+                if (current >= targetNumber) {
+                    current = targetNumber;
+                    clearInterval(interval);
+                }
+                element.textContent = Math.floor(current);
+            }, 50);
+        }
+        
+        function populateThreatList() {
+            const threatList = document.getElementById('threat-list');
+            viruses.slice(0, virusCount).forEach((virus, index) => {
+                setTimeout(() => {
+                    const threatItem = document.createElement('div');
+                    threatItem.className = 'threat-item';
+                    threatItem.innerHTML = `
+                        <div>
+                            <div class="threat-name">${virus.name}</div>
+                            <div class="threat-path">${virus.path}</div>
+                        </div>
+                        <div class="threat-severity">${virus.severity}</div>
+                    `;
+                    threatList.appendChild(threatItem);
+                }, index * 300);
+            });
+        }
+        
+        function startCleaning() {
+            alert('🎉 ŞAKA! 😄\n\nBu sadece bir şaka programıydı!\nBilgisayarında hiç virüs yok, merak etme! 😎\n\nArkadaşını trolledik! 🤣');
+        }
+        
+        function showDetails() {
+            alert('📋 Detaylar:\n\n• Bu tamamen sahte bir program\n• Hiçbir gerçek tarama yapılmadı\n• Bilgisayarın güvende!\n• Sadece eğlence amaçlı 😄');
+        }
+        
+        function restartScan() {
+            location.reload();
+        }
+        
+        function closeWindow() {
+            if (confirm('Tarama devam ediyor! Kapatmak istediğinize emin misiniz?')) {
+                alert('🎭 ŞAKA BİTTİ! 🎉\n\nBu sadece bir şakaydı dostum! 😄\nGerçek bir virüs tarayıcısı değildi!');
+                window.close();
+            }
+        }
+        
+        // Sayfa yüklendiğinde taramayı başlat
+        window.onload = function() {
+            setTimeout(startScan, 1000);
+        };
+        
+        // F5 ile yenilemeyi engelle
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F5') {
+                e.preventDefault();
+                alert('⚠️ Tarama devam ederken yenileme yapılamaz!');
+            }
+        });
+    </script>
+</body>
+</html>
